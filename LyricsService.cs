@@ -30,13 +30,7 @@ public class LyricsService
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
     }
 
-    // =====================================================================
-    //  MUSIXMATCH — підписання запитів та автогенерація токена
-    // =====================================================================
 
-    /// <summary>
-    /// Підписує запит HMAC-SHA1 (як робить десктопний клієнт Musixmatch).
-    /// </summary>
     private string SignRequest(string method, Dictionary<string, string> queryParams, string timestamp)
     {
         string url = _apiBase + method + "?" + string.Join("&",
@@ -50,7 +44,7 @@ public class LyricsService
         using (var hmac = new HMACSHA1(keyBytes))
         {
             byte[] hash = hmac.ComputeHash(dataBytes);
-            // Base64 URL-safe
+
             return Convert.ToBase64String(hash)
                 .Replace('+', '-')
                 .Replace('/', '_')
@@ -58,9 +52,7 @@ public class LyricsService
         }
     }
 
-    /// <summary>
-    /// Автоматично генерує новий Musixmatch usertoken через token.get ендпоінт.
-    /// </summary>
+
     private string? GenerateMusixmatchToken()
     {
         try
@@ -108,21 +100,16 @@ public class LyricsService
         return null;
     }
 
-    /// <summary>
-    /// Повертає актуальний Musixmatch токен (кешований або свіжо згенерований).
-    /// </summary>
+ 
     private string? GetMusixmatchToken()
     {
-        // Якщо є env var — використовуємо його (ручний override)
         string? envToken = Environment.GetEnvironmentVariable("MUSIXMATCH_TOKEN");
         if (!string.IsNullOrEmpty(envToken))
             return envToken;
 
-        // Якщо кешований токен ще валідний (оновлюємо кожні 10 хв)
         if (_cachedToken != null && DateTime.UtcNow < _tokenExpiry)
             return _cachedToken;
 
-        // Генеруємо новий
         string? newToken = GenerateMusixmatchToken();
         if (!string.IsNullOrEmpty(newToken))
         {
@@ -134,13 +121,7 @@ public class LyricsService
         return null;
     }
 
-    // =====================================================================
-    //  1. MUSIXMATCH — синхронізований текст (LRC) через Spotify Track ID
-    // =====================================================================
 
-    /// <summary>
-    /// Пошук через Musixmatch за Spotify Track ID — найточніше співпадіння.
-    /// </summary>
     public string? GetLyricsFromMusixmatchBySpotifyId(string spotifyTrackId)
     {
         try
@@ -148,7 +129,6 @@ public class LyricsService
             string? usertoken = GetMusixmatchToken();
             if (string.IsNullOrEmpty(usertoken)) return null;
 
-            // Musixmatch Desktop API підтримує пошук по Spotify track ID
             string matchUrl = $"{_apiBase}matcher.track.get?app_id=web-desktop-app-v1.0" +
                               $"&usertoken={usertoken}&track_spotify_id=spotify:track:{spotifyTrackId}";
 
@@ -174,9 +154,6 @@ public class LyricsService
         return null;
     }
 
-    // =====================================================================
-    //  2. MUSIXMATCH — синхронізований текст через пошук artist+title
-    // =====================================================================
 
     public string? GetLyricsFromMusixmatch(string artist, string title)
     {
@@ -217,9 +194,7 @@ public class LyricsService
         return null;
     }
 
-    /// <summary>
-    /// Завантажує субтитри (LRC) з Musixmatch за track_id.
-    /// </summary>
+
     private string? FetchMusixmatchSubtitle(string usertoken, int trackId)
     {
         try
@@ -248,9 +223,6 @@ public class LyricsService
         return null;
     }
 
-    // =====================================================================
-    //  3. LRCLIB — відкрита база синхронізованих текстів
-    // =====================================================================
 
     public string? GetLyricsFromLrcLib(string artist, string title)
     {
@@ -288,9 +260,6 @@ public class LyricsService
         return null;
     }
 
-    // =====================================================================
-    //  ПАРСЕРИ
-    // =====================================================================
 
     public List<SyncedLine> ParseLrc(string lrcLyrics)
     {
@@ -306,7 +275,6 @@ public class LyricsService
                 int seconds = int.Parse(match.Groups[2].Value);
                 string msStr = match.Groups[3].Value;
 
-                // Обробка різних форматів мілісекунд: .XX (сотні) або .XXX (тисячні)
                 int milliseconds;
                 if (msStr.Length <= 2)
                     milliseconds = int.Parse(msStr) * 10;
@@ -322,15 +290,11 @@ public class LyricsService
         return lines;
     }
 
-    // =====================================================================
-    //  ДОПОМІЖНІ МЕТОДИ
-    // =====================================================================
 
     private string CleanQuery(string query)
     {
         if (string.IsNullOrEmpty(query)) return query;
 
-        // Прибираємо дужки (типу "(Official Video)", "[Remastered]") і сміття
         string cleaned = Regex.Replace(query, @"\s*[\(\[][^\]\)]*[\)\]]", "");
         cleaned = Regex.Replace(cleaned, @"(?i)\b(feat|ft|remastered|remix|edit|official video|video|lyrics|nightcore)\b.*", "");
 

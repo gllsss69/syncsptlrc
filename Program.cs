@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -10,7 +10,7 @@ class Program
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         Console.CursorVisible = false;
 
-        // Ініціалізуємо наші сервіси
+
         var player = new PlayerService();
         var ascii = new AsciiService();
         var lyrics = new LyricsService();
@@ -22,11 +22,17 @@ class Program
         string scrollModeInfo = "";
 
 
-
         string currentArtist = "";
         string currentTitle = "";
 
-        // --- Smooth sync: local interpolation ---
+
+        // --- Кольори тексту ---
+        ConsoleColor[] _colors = { ConsoleColor.Yellow, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Red };
+        int _colorIndex = 0;
+
+        // --- HUD: 0 = все видно, 1 = меню сховано, 2 = тільки текст ---
+        int hudMode = 0;
+
         Stopwatch localTimer = new Stopwatch();
         double lastPolledPosition = 0;
         DateTime lastPollTime = DateTime.MinValue;
@@ -38,7 +44,26 @@ class Program
             int winWidth = 80;
             int winHeight = 24;
 
-            // --- Poll playerctl once per second ---
+            // --- Обробка клавіш ---
+            while (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey(true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.F:
+                        ascii.NextFont();
+                        Console.Clear();
+                        break;
+                    case ConsoleKey.C:
+                        _colorIndex = (_colorIndex + 1) % _colors.Length;
+                        break;
+                    case ConsoleKey.H:
+                        hudMode = (hudMode + 1) % 3;
+                        Console.Clear();
+                        break;
+                }
+            }
+
             bool shouldPoll = (DateTime.UtcNow - lastPollTime).TotalMilliseconds >= 1000;
             if (shouldPoll)
             {
@@ -66,7 +91,7 @@ class Program
                 try { winWidth = Console.WindowWidth; winHeight = Console.WindowHeight; } catch { }
 
                 string[] logoLines = ascii.Logo.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                int searchBlockHeight = logoLines.Length + 12; // logo + search strings + padding
+                int searchBlockHeight = logoLines.Length + 12;
                 int topPadding = Math.Max(0, (winHeight - searchBlockHeight) / 2);
 
                 for (int i = 0; i < topPadding; i++) Console.WriteLine();
@@ -103,13 +128,8 @@ class Program
                 syncedLyrics.Clear();
 
 
-                // ============================================
-                //  FALLBACK-ЛАНЦЮЖОК СИНХРОНІЗОВАНОГО ТЕКСТУ
-                // ============================================
-
                 string? syncedText = null;
 
-                // Крок 1: Musixmatch через Spotify Track ID (найточніший матч)
                 string? spotifyId = player.GetSpotifyTrackId();
                 if (!string.IsNullOrEmpty(spotifyId))
                 {
@@ -128,7 +148,6 @@ class Program
                     }
                 }
 
-                // Крок 2: Musixmatch через пошук artist+title
                 if (!isSynced)
                 {
                     PrintSearchStep("Musixmatch (search)...", ConsoleColor.DarkGray);
@@ -145,7 +164,6 @@ class Program
                     }
                 }
 
-                // Крок 3: LRCLIB через пошук artist+title
                 if (!isSynced)
                 {
                     PrintSearchStep("LRCLIB (search)...", ConsoleColor.DarkGray);
@@ -162,19 +180,16 @@ class Program
                     }
                 }
 
-
                 lastTrack = currentTrack;
-                
-                // Очищаємо екран після пошуку, щоб не було накладання тексту
                 Console.Clear();
             }
 
-            // --- МАЛЮЄМО ЕКРАН ---
             Console.SetCursorPosition(0, 0);
 
             try { winWidth = Console.WindowWidth; winHeight = Console.WindowHeight; } catch { }
 
-            int footerHeight = 3;
+            // hudMode 0,1 — показуємо всі рядки; hudMode 2 — тільки текст
+            int footerHeight = hudMode == 2 ? 0 : 3;
             int availableHeight = Math.Max(1, winHeight - footerHeight);
             int printedLines = 0;
 
@@ -196,6 +211,10 @@ class Program
                 }
 
                 string activeText = syncedLyrics[activeIndex].Text;
+                if (string.IsNullOrWhiteSpace(activeText) || activeText == "♪" || activeText == "♫")
+                {
+                    activeText = "~ ~ ~";
+                }
 
                 int maxChars = Math.Max(10, winWidth / 7);
                 List<string> asciiLines = ascii.RenderAsciiWrapped(activeText, maxChars);
@@ -214,7 +233,7 @@ class Program
                 }
                 printedLines += topPadding;
 
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = _colors[_colorIndex];
                 foreach(var artPart in asciiLines)
                 {
                     string[] splitArt = artPart.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -251,7 +270,6 @@ class Program
                 Console.WriteLine(new string(' ', winWidth));
             }
 
-            // --- ВИВЕДЕННЯ ФУТЕРА ---
             Action<string, ConsoleColor> PrintCenteredFooter = (text, color) => 
             {
                 if (string.IsNullOrEmpty(text)) text = " ";
@@ -261,13 +279,25 @@ class Program
                 Console.ResetColor();
             };
 
-            Console.WriteLine(new string(' ', winWidth)); // Пустий рядок перед футером
-            PrintCenteredFooter($"{currentArtist} - {currentTitle}", ConsoleColor.Cyan);
-            
-            int fPad2 = Math.Max(0, (winWidth - scrollModeInfo.Length - 16) / 2);
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write((new string(' ', fPad2) + $"Display mode: {scrollModeInfo}").PadRight(winWidth));
-            Console.ResetColor();
+            // --- ФУТЕР ---
+            if (hudMode == 0 || hudMode == 1)
+            {
+                Console.WriteLine(new string(' ', winWidth));
+                PrintCenteredFooter($"{currentArtist} - {currentTitle}", ConsoleColor.Cyan);
+
+                if (hudMode == 0)
+                {
+                    string hudText = $"Display mode: {scrollModeInfo}  |  [F]Font: {ascii.CurrentFontName}  [C]Color  [H]HUD";
+                    int fPad2 = Math.Max(0, (winWidth - hudText.Length) / 2);
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write((new string(' ', fPad2) + hudText).PadRight(winWidth));
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.Write(new string(' ', winWidth));
+                }
+            }
 
             Thread.Sleep(50);
         }

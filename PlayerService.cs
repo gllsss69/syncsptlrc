@@ -72,11 +72,7 @@ public class PlayerService
         return 0;
     }
 
-    /// <summary>
-    /// Витягує Spotify track ID з playerctl metadata.
-    /// Формат mpris:trackid: "spotify:track:4PTG3Z6ehGkBFwjybzWkR8"
-    /// Повертає чистий ID (наприклад "4PTG3Z6ehGkBFwjybzWkR8") або null.
-    /// </summary>
+
     public string? GetSpotifyTrackId()
     {
         try
@@ -98,9 +94,7 @@ public class PlayerService
         return null;
     }
 
-    /// <summary>
-    /// Отримує тривалість треку в секундах через playerctl metadata.
-    /// </summary>
+
     public double GetTrackDuration()
     {
         try
@@ -108,7 +102,6 @@ public class PlayerService
             string? lengthStr = RunPlayerctl("metadata mpris:length");
             if (!string.IsNullOrEmpty(lengthStr))
             {
-                // mpris:length повертає мікросекунди
                 if (long.TryParse(lengthStr.Trim(), out long microseconds))
                 {
                     return microseconds / 1_000_000.0;
@@ -119,9 +112,7 @@ public class PlayerService
         return 0;
     }
 
-    /// <summary>
-    /// Отримує назву альбому через playerctl metadata.
-    /// </summary>
+
     public string? GetAlbumName()
     {
         try

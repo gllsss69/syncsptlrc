@@ -17,17 +17,53 @@ public class AsciiService
       |___/               |_|                   
 """;
 
+    private readonly (string name, Figgle.FiggleFont font)[] _fonts =
+    {
+        ("Standard",   FiggleFonts.Standard),
+        ("Slant",      FiggleFonts.Slant),
+        ("Doom",       FiggleFonts.Doom),
+        ("Big",        FiggleFonts.Big),
+        ("Colossal",   FiggleFonts.Colossal),
+        ("Small",      FiggleFonts.Small),
+        ("Graceful",   FiggleFonts.Graceful),
+        ("Morse",      FiggleFonts.Morse),
+        ("Rectangles", FiggleFonts.Rectangles)
+    };
+
+    private int _fontIndex = 0;
+
+    public string CurrentFontName => _fonts[_fontIndex].name;
+
+    public void NextFont()
+    {
+        _fontIndex = (_fontIndex + 1) % _fonts.Length;
+    }
+
     public string ConvertToAsciiArt(string text)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(text)) return "";
-            return FiggleFonts.Standard.Render(text);
+            string rendered = _fonts[_fontIndex].font.Render(Transliterate(text));
+            if (string.IsNullOrWhiteSpace(rendered)) return text + "\n";
+            return rendered;
         }
         catch
         {
             return text + "\n";
         }
+    }
+
+    private string Transliterate(string text)
+    {
+        string[] cyr = { "а", "б", "в", "г", "д", "е", "є", "ж", "з", "и", "і", "ї", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ь", "ю", "я", "ы", "э", "ъ" };
+        string[] lat = { "a", "b", "v", "g", "d", "e", "je", "zh", "z", "i", "i", "ji", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "kh", "c", "ch", "sh", "shh", "'", "ju", "ja", "y", "e", "'" };
+
+        for (int i = 0; i < cyr.Length; i++)
+        {
+            text = text.Replace(cyr[i], lat[i]).Replace(cyr[i].ToUpper(), lat[i].ToUpper());
+        }
+        return text;
     }
 
     public List<string> RenderAsciiWrapped(string text, int maxCharsPerLine = 20)
