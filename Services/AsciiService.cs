@@ -30,7 +30,9 @@ public class AsciiService
         ("Small",      FiggleFonts.Small),
         ("Graceful",   FiggleFonts.Graceful),
         ("Morse",      FiggleFonts.Morse),
-        ("Rectangles", FiggleFonts.Rectangles)
+        ("Rectangles", FiggleFonts.Rectangles),
+        ("FourMax",    FiggleFonts.FourMax),
+        ("Puffy",      FiggleFonts.Puffy)
     };
 
     private int _fontIndex = 0;

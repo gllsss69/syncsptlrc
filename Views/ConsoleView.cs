@@ -162,7 +162,8 @@ namespace syncsptlrc.Views
             // Draw HUD menu if hudMode is 0
             if (state.HudMode == 0)
             {
-                string hudText = $"Display mode: {state.ScrollModeInfo}  |  [F]Font: {currentFontName}  [C]Color  [H]HUD";
+                string wordMode = state.WordByWordMode ? "ON" : "OFF";
+                string hudText = $"Lyrics: {state.ScrollModeInfo}  |  [F]Font: {currentFontName}  [C]Color  [H]HUD  [W]Word({wordMode})";
                 int fPad2 = Math.Max(0, (winWidth - hudText.Length) / 2);
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.Write((new string(' ', fPad2) + hudText).PadRight(winWidth));

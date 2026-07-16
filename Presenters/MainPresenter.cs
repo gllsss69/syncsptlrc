@@ -49,6 +49,10 @@ namespace syncsptlrc.Presenters
                             _state.HudMode = (_state.HudMode + 1) % 3;
                             _view.Clear();
                             break;
+                        case ConsoleKey.W:
+                            _state.WordByWordMode = !_state.WordByWordMode;
+                            _view.Clear();
+                            break;
                     }
                 }
 
@@ -109,7 +113,7 @@ namespace syncsptlrc.Presenters
                             {
                                 _state.SyncedLyrics = parsed;
                                 _state.IsSynced = true;
-                                _state.ScrollModeInfo = "SYNCED (Musixmatch/Spotify ID)";
+                                _state.ScrollModeInfo = "Musixmatch/Spotify ID";
                             }
                         }
                     }
@@ -127,7 +131,7 @@ namespace syncsptlrc.Presenters
                             {
                                 _state.SyncedLyrics = parsed;
                                 _state.IsSynced = true;
-                                _state.ScrollModeInfo = "SYNCED (Musixmatch)";
+                                _state.ScrollModeInfo = "Musixmatch";
                             }
                         }
                     }
@@ -145,7 +149,7 @@ namespace syncsptlrc.Presenters
                             {
                                 _state.SyncedLyrics = parsed;
                                 _state.IsSynced = true;
-                                _state.ScrollModeInfo = "SYNCED (LRCLIB)";
+                                _state.ScrollModeInfo = "LRCLIB";
                             }
                         }
                     }
@@ -178,6 +182,28 @@ namespace syncsptlrc.Presenters
                     if (string.IsNullOrWhiteSpace(activeText) || activeText == "♪" || activeText == "♫")
                     {
                         activeText = "~ ~ ~";
+                    }
+
+                    // Word-by-word mode: pick one word based on time interpolation
+                    if (_state.WordByWordMode)
+                    {
+                        string[] words = activeText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (words.Length > 0)
+                        {
+                            double lineStart = _state.SyncedLyrics[activeIndex].TimeInSeconds;
+                            double lineEnd = (activeIndex + 1 < _state.SyncedLyrics.Count)
+                                ? _state.SyncedLyrics[activeIndex + 1].TimeInSeconds
+                                : lineStart + 5.0;
+
+                            double lineDuration = lineEnd - lineStart;
+                            double elapsed = currentPosition - lineStart;
+                            double progress = Math.Max(0, Math.Min(1, elapsed / lineDuration));
+
+                            int wordIndex = (int)(progress * words.Length);
+                            if (wordIndex >= words.Length) wordIndex = words.Length - 1;
+
+                            activeText = words[wordIndex];
+                        }
                     }
 
                     int maxChars = Math.Max(10, _view.WindowWidth / 7);
