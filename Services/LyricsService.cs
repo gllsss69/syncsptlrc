@@ -8,13 +8,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using syncsptlrc.Models;
 
-
-public class SyncedLine
+namespace syncsptlrc.Services
 {
-    public double TimeInSeconds { get; set; }
-    public string Text { get; set; } = string.Empty;
-}
+
 
 public class LyricsService
 {
@@ -329,4 +327,5 @@ public class LyricsService
             return jsonSubtitle;
         }
     }
+}
 }

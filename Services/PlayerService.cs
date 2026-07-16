@@ -2,6 +2,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
+namespace syncsptlrc.Services
+{
+
 public class PlayerService
 {
     public string GetStatus()
@@ -151,4 +154,5 @@ public class PlayerService
             return null;
         }
     }
+}
 }

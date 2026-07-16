@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+using syncsptlrc.Models;
+
+namespace syncsptlrc.Views
+{
+    public interface IMainView
+    {
+        int WindowWidth { get; }
+        int WindowHeight { get; }
+        bool KeyAvailable { get; }
+        ConsoleKeyInfo ReadKey();
+        void Clear();
+        void SetCursorPosition(int left, int top);
+        void PrepareSearchScreen(string logo, string currentTrack);
+        void DrawSearchStep(string text, ConsoleColor color);
+        void DrawLyrics(List<string> asciiLines, PlaybackState state);
+        void DrawNoLyricsMessage(PlaybackState state);
+        void DrawFooter(PlaybackState state, string currentFontName);
+    }
+}

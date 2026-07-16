@@ -4,6 +4,9 @@ using System.IO;
 using Figgle;
 using Figgle.Fonts;
 
+namespace syncsptlrc.Services
+{
+
 public class AsciiService
 {
     public readonly string Logo = """
@@ -90,4 +93,5 @@ public class AsciiService
 
         return lines;
     }
+}
 }
