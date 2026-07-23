@@ -292,11 +292,7 @@ public class LyricsService
     private string CleanQuery(string query)
     {
         if (string.IsNullOrEmpty(query)) return query;
-
-        string cleaned = Regex.Replace(query, @"\s*[\(\[][^\]\)]*[\)\]]", "");
-        cleaned = Regex.Replace(cleaned, @"(?i)\b(feat|ft|remastered|remix|edit|official video|video|lyrics|nightcore)\b.*", "");
-
-        return cleaned.Trim();
+        return query.Trim();
     }
 
     private string ConvertMusixmatchJsonToLrc(string jsonSubtitle)

@@ -27,6 +27,7 @@ public class PlayerService
                 FileName = "playerctl",
                 Arguments = "--player=spotify,%any metadata --format \"{{ artist }} - {{ title }}\"",
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
@@ -55,6 +56,7 @@ public class PlayerService
                 FileName = "playerctl",
                 Arguments = "--player=spotify,%any position",
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
@@ -75,6 +77,23 @@ public class PlayerService
         return 0;
     }
 
+
+
+    public bool IsAd()
+    {
+        try
+        {
+            string? trackId = RunPlayerctl("metadata mpris:trackid");
+            if (!string.IsNullOrEmpty(trackId))
+            {
+                return trackId.Contains("spotify:ad:") ||
+                       trackId.Contains("/com/spotify/ad/") ||
+                       trackId.Contains(":ad:");
+            }
+        }
+        catch { }
+        return false;
+    }
 
     public string? GetSpotifyTrackId()
     {

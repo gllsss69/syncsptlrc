@@ -11,6 +11,7 @@ namespace syncsptlrc.Models
         public string CurrentArtist { get; set; } = string.Empty;
         public string CurrentTitle { get; set; } = string.Empty;
         public bool IsPlaying { get; set; }
+        public bool IsAd { get; set; }
         
         public double LastPolledPosition { get; set; }
         public Stopwatch LocalTimer { get; } = new Stopwatch();

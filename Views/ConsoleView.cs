@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using syncsptlrc.Models;
 
 namespace syncsptlrc.Views
@@ -45,10 +46,11 @@ namespace syncsptlrc.Views
                 Console.WriteLine(new string(' ', winWidth));
             }
 
+            int maxLogoWidth = logoLines.Length > 0 ? logoLines.Max(l => l.Length) : 0;
             Console.ForegroundColor = ConsoleColor.Cyan;
             foreach (string line in logoLines)
             {
-                int leftPad = Math.Max(0, (winWidth - line.Length) / 2);
+                int leftPad = Math.Max(0, (winWidth - maxLogoWidth) / 2);
                 Console.WriteLine(new string(' ', leftPad) + line);
             }
             Console.ResetColor();
@@ -84,7 +86,8 @@ namespace syncsptlrc.Views
             int totalAsciiHeight = 0;
             foreach (var artPart in asciiLines)
             {
-                totalAsciiHeight += artPart.Split(new[] { "\n" }, StringSplitOptions.None).Length;
+                var splitArt = artPart.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                totalAsciiHeight += splitArt.Count(line => !string.IsNullOrWhiteSpace(line));
             }
 
             int topPadding = Math.Max(0, (availableHeight - totalAsciiHeight) / 2);
@@ -99,11 +102,12 @@ namespace syncsptlrc.Views
             foreach (var artPart in asciiLines)
             {
                 string[] splitArt = artPart.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                int maxArtWidth = splitArt.Length > 0 ? splitArt.Max(l => l.Length) : 0;
+                int blockLeftPad = Math.Max(0, (winWidth - maxArtWidth) / 2);
                 foreach (var line in splitArt)
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
-                    int leftPad = Math.Max(0, (winWidth - line.Length) / 2);
-                    string paddedLine = new string(' ', leftPad) + line;
+                    string paddedLine = new string(' ', blockLeftPad) + line;
                     Console.WriteLine(paddedLine.PadRight(winWidth));
                     printedLines++;
                 }
@@ -140,6 +144,94 @@ namespace syncsptlrc.Views
             printedLines++;
 
             for (int i = printedLines; i < availableHeight; i++)
+            {
+                Console.WriteLine(new string(' ', winWidth));
+            }
+        }
+
+        public void DrawIdleMessage(string logo)
+        {
+            int winWidth = WindowWidth;
+            int winHeight = WindowHeight;
+
+            string[] logoLines = logo.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string msg = "Open a player and play some music";
+
+            int totalHeight = logoLines.Length + 3;
+            int topPadding = Math.Max(0, (winHeight - totalHeight) / 2);
+
+            int printedLines = 0;
+
+            for (int i = 0; i < topPadding; i++)
+            {
+                Console.WriteLine(new string(' ', winWidth));
+            }
+            printedLines += topPadding;
+
+            int maxLogoWidth = logoLines.Length > 0 ? logoLines.Max(l => l.Length) : 0;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            foreach (string line in logoLines)
+            {
+                int leftPad = Math.Max(0, (winWidth - maxLogoWidth) / 2);
+                Console.WriteLine(new string(' ', leftPad) + line);
+                printedLines++;
+            }
+            Console.ResetColor();
+
+            Console.WriteLine(new string(' ', winWidth));
+            printedLines++;
+
+            int msgPad = Math.Max(0, (winWidth - msg.Length) / 2);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine((new string(' ', msgPad) + msg).PadRight(winWidth));
+            Console.ResetColor();
+            printedLines++;
+
+            for (int i = printedLines; i < winHeight; i++)
+            {
+                Console.WriteLine(new string(' ', winWidth));
+            }
+        }
+
+        public void DrawAdMessage(string logo)
+        {
+            int winWidth = WindowWidth;
+            int winHeight = WindowHeight;
+
+            string[] logoLines = logo.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string msg = "Ad break — sit tight";
+
+            int totalHeight = logoLines.Length + 3;
+            int topPadding = Math.Max(0, (winHeight - totalHeight) / 2);
+
+            int printedLines = 0;
+
+            for (int i = 0; i < topPadding; i++)
+            {
+                Console.WriteLine(new string(' ', winWidth));
+            }
+            printedLines += topPadding;
+
+            int maxLogoWidth = logoLines.Length > 0 ? logoLines.Max(l => l.Length) : 0;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            foreach (string line in logoLines)
+            {
+                int leftPad = Math.Max(0, (winWidth - maxLogoWidth) / 2);
+                Console.WriteLine(new string(' ', leftPad) + line);
+                printedLines++;
+            }
+            Console.ResetColor();
+
+            Console.WriteLine(new string(' ', winWidth));
+            printedLines++;
+
+            int msgPad = Math.Max(0, (winWidth - msg.Length) / 2);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine((new string(' ', msgPad) + msg).PadRight(winWidth));
+            Console.ResetColor();
+            printedLines++;
+
+            for (int i = printedLines; i < winHeight; i++)
             {
                 Console.WriteLine(new string(' ', winWidth));
             }

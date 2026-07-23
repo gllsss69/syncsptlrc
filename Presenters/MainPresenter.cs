@@ -15,6 +15,7 @@ namespace syncsptlrc.Presenters
         private readonly AsciiService _ascii;
         private readonly LyricsService _lyrics;
         private readonly PlaybackState _state;
+        private bool _idleDrawn;
 
         public MainPresenter(IMainView view, PlayerService player, AsciiService ascii, LyricsService lyrics)
         {
@@ -64,6 +65,7 @@ namespace syncsptlrc.Presenters
                     _state.CurrentTrack = _player.GetCurrentTrack();
                     string status = _player.GetStatus();
                     _state.IsPlaying = status.Trim().Equals("Playing", StringComparison.OrdinalIgnoreCase);
+                    _state.IsAd = _player.IsAd();
 
                     if (_state.IsPlaying)
                     {
@@ -76,13 +78,45 @@ namespace syncsptlrc.Presenters
                     }
                 }
 
-                if (string.IsNullOrEmpty(_state.CurrentTrack))
+                // 2b. Detect idle state (no player or no music)
+                bool isIdle = !_state.IsPlaying &&
+                    (string.IsNullOrEmpty(_state.CurrentTrack) ||
+                     _state.CurrentTrack == "The music isn't playing." ||
+                     _state.CurrentTrack == "Failed to retrieve the song");
+
+                if (isIdle)
                 {
-                    Thread.Sleep(50);
+                    if (!_idleDrawn)
+                    {
+                        _view.Clear();
+                        _view.SetCursorPosition(0, 0);
+                        _view.DrawIdleMessage(_ascii.Logo);
+                        _state.LastTrack = string.Empty;
+                        _idleDrawn = true;
+                    }
+                    Thread.Sleep(300);
                     continue;
                 }
 
-                // 3. Track changed - fetch lyrics
+                _idleDrawn = false;
+
+                // 3. Ad playing - skip lyrics search
+                if (_state.IsAd)
+                {
+                    if (_state.LastTrack != "__ad__")
+                    {
+                        _state.IsSynced = false;
+                        _state.SyncedLyrics.Clear();
+                        _state.LastTrack = "__ad__";
+                        _view.Clear();
+                    }
+                    _view.SetCursorPosition(0, 0);
+                    _view.DrawAdMessage(_ascii.Logo);
+                    Thread.Sleep(200);
+                    continue;
+                }
+
+                // 4. Track changed - fetch lyrics
                 if (_state.CurrentTrack != _state.LastTrack && 
                     _state.CurrentTrack != "The music isn't playing." && 
                     _state.CurrentTrack != "Failed to retrieve the song")
@@ -185,7 +219,7 @@ namespace syncsptlrc.Presenters
                     }
 
                     // Word-by-word mode: pick one word based on time interpolation
-                    if (_state.WordByWordMode)
+                    if (_state.WordByWordMode && activeText != "~ ~ ~")
                     {
                         string[] words = activeText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         if (words.Length > 0)

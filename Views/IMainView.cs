@@ -16,6 +16,8 @@ namespace syncsptlrc.Views
         void DrawSearchStep(string text, ConsoleColor color);
         void DrawLyrics(List<string> asciiLines, PlaybackState state);
         void DrawNoLyricsMessage(PlaybackState state);
+        void DrawIdleMessage(string logo);
+        void DrawAdMessage(string logo);
         void DrawFooter(PlaybackState state, string currentFontName);
     }
 }
