@@ -7,11 +7,11 @@
 ## ✨ Features
 
 - **Synced Lyrics in ASCII**: Experience your music like never before with dynamic, terminal-based ASCII art lyrics.
-- **Multiple Lyric Sources**: Automatically searches Musixmatch (via Spotify ID or metadata) and LRCLIB to find the most accurate synced lyrics.
-- **Alternative Track Support**: Fully supports "Sped Up", "Slowed", and "Nightcore" versions, fetching exactly synced lyrics for modified tracks instead of mismatching with the original song.
-- **Spotify Ad Detection**: Gracefully handles Spotify ad breaks by pausing lyrics and displaying an aesthetic "Ad break" screen.
-- **Customizable UI in Real-time**: Change fonts, colors, HUD visibility, and rendering modes on the fly using hotkeys.
+- **Cyrillic Support**: Automatically transliterates Ukrainian, Russian, and other Cyrillic text into Latin characters on the fly, ensuring all lyrics render flawlessly in ASCII fonts.
 - **Word-by-word Mode**: Watch the lyrics appear one word at a time based on time interpolation for maximum synchronization.
+- **Multiple Lyric Sources**: Automatically searches Musixmatch and LRCLIB to find the most accurate synced lyrics.
+- **Real-time Customization**: Change ASCII fonts, text colors, HUD visibility, and Word-by-word mode on the fly using keyboard hotkeys.
+- **Smart Playback Tracking**: Seamlessly handles pausing, resuming, ad breaks, and track changes via `playerctl`.
 
 ## 📋 Prerequisites
 
